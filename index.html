@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	@font-face {
+    font-family: 'Iowan Old Style';
+    src: url(iowan.ttf);
+}
+
+body 
+{ 
+	margin: 0px;
+	padding: 0px;
+	background: #838383; 
+}
+
+
+</style>
+<script src="window.js"></script>
+<script src="snd.js"></script>
+<script src="intro.js"></script>
+<script src="lobby.js"></script>
+<script src="lobby2.js"></script>
+<script src="puzzle1.js"></script>
+<script src="puzzle2.js"></script>
+<script src="puzzle3.js"></script>
+<script src="puzzle4.js"></script>
+<script src="gallery.js"></script>
+<script src="puzzle5.js"></script>
+<script src="puzzle6.js"></script>
+<script src="puzzle7.js"></script>
+<script src="puzzle8.js"></script>
+<script src="puzzle9.js"></script>
+<script src="towerstairs.js"></script>
+<script src="tower.js"></script>
+<script src="slide.js"></script>
+<script src="crypt.js"></script>
+<script src="throne.js"></script>
+<script src="character.js"></script>
+<script src="guard.js"></script>
+<script src="tiles.js"></script>
+<script src="items.js"></script>
+<script src="text.js"></script>
+<script type="text/javascript">
+
+var gameMap = [];
+var itemMap = [];
+
+var openingTitleTick = true; // changed to false for world tests
+var soundsLoaded = false;
+var freezeMovement = false;
+const numberOfSounds = 116;
+var gameEnd = false;
+var isIntro = false, introTick = false;
+var isLobby = false, lobbyTick = false; isBalcony = false;
+var isLobby2 = false, lobbyTick2 = false;
+var isPuzzleRoom1 = false, puzzleRoom1Tick = false, puzzle1Solved = false;
+var isPuzzleRoom2 = false, puzzleRoom2Tick = false, puzzle2Solved = false;
+var isPuzzleRoom3 = false, puzzleRoom3Tick = false, puzzle3Solved = false;
+var isPuzzleRoom4 = false, puzzleRoom4Tick = false, puzzle4Solved = false;
+var isGallery = false, galleryTick = false;
+var isPuzzleRoom5 = false, puzzleRoom5Tick = false, puzzle5Solved = false;
+var isPuzzleRoom6 = false, puzzleRoom6Tick = false, puzzle6Solved = false;
+var isPuzzleRoom7 = false, puzzleRoom7Tick = false, puzzle7Solved = false;
+var isPuzzleRoom8 = false, puzzleRoom8Tick = false, puzzle8Solved = false;
+var isPuzzleRoom9 = false, puzzleRoom9Tick = false, puzzle9Solved = false;
+var secretsObtained = 0;
+//changed to true
+var hasEye = false, hasEar = false; hasMic = false;/////////////////////
+
+var stairBgEnded = false;
+var isThrone = false, throneTick = false, thronePuzzleSolved = false;
+var isCrypt = false, cryptTick = false;
+var isSlide = false, slideTick = false;
+var isTowerStairs = false, towerStairsTick = false; towerStairsSolved = false;
+var isTower = false, towerTick = false; towerSolved = false;
+var starting_pos;
+var kingBuild = [1,4,8,12];
+var startTime, endTime;
+
+//SWITCH TO A LEVEL EASILY
+let tickChoice = 'intro';
+
+//////////////////
+useTick(tickChoice);
+
+function useTick(t)
+{
+	if(t == 'intro') { isIntro = true, introTick = true; }
+	if(t == 'lobby') { isLobby = true, lobbyTick = true; }
+	if(t == 'lobby2') { isLobby2 = true, lobby2Tick = true; }
+	if(t == 'gallery') { isGallery = true, galleryTick = true; }
+	if(t == 'stairs') { isTowerStairs = true, towerStairsTick = true; }
+	if(t == 'tower') { isTower = true, towerTick = true; }
+	if(t == 'slide') { isSlide = true, slideTick = true; }
+	if(t == 1) { isPuzzleRoom1 = true; puzzleRoom1Tick = true; }
+	if(t == 2) { isPuzzleRoom2 = true; puzzleRoom2Tick = true; }
+	if(t == 3) { isPuzzleRoom3 = true; puzzleRoom3Tick = true; }
+	if(t == 4) { isPuzzleRoom4 = true; puzzleRoom4Tick = true; }
+	if(t == 5) { isPuzzleRoom5 = true; puzzleRoom5Tick = true; }
+	if(t == 6) { isPuzzleRoom6 = true; puzzleRoom6Tick = true; }
+	if(t == 7) { isPuzzleRoom7 = true; puzzleRoom7Tick = true; }
+	if(t == 8) { isPuzzleRoom8 = true; puzzleRoom8Tick = true; }
+	if(t == 9) { isPuzzleRoom9 = true; puzzleRoom9Tick = true; }
+	if(t == 'throne') { isThrone = true; throneTick = true; }
+	if(t == 'crypt') { isCrypt = true, cryptTick = true; }
+}
+
+
+/////////////////
+var ctx = null;
+var canvas;
+const w = 700;
+const h = 600;
+const tileW = 50, tileH = 50;
+const tw = 100, th = 100;
+var mapW = 12, mapH = 12;
+var keyTick = false;
+
+
+var playerPosLast;
+var playerSpeed = 250;
+var currentSecond = 0, frameCount = 0, framesLastSecond = 0, lastFrameTime = 0;
+var string1 = '', string2 = '', string3 = '', string4 = '', string0 = '';
+var keysObtained = 0;
+var keysUsed = 0;
+var sprite;
+var rhythmsObtained = 0;
+var rhythms = [0,0,0,0,0,0,0,0,0,0,0,0];
+var collectTime = false;
+var collectionTime = 13000;
+var galleryPuzzleAlphaTick = false;
+var overlayActive = false;
+
+var guardToStrike = null;
+var guardTick = false;
+
+// var destructTick = true;
+var spaceTick = false;
+var lobbyPuzzleAlphaTick = false;
+var currentFrameTime;
+
+var allowLobbyRhythms = false;
+var puzzle1Tiles = [];
+var puzzle2Tallies = [0,0,0,0,0,0];
+var puzzle2Doors = [];
+var p2current = [];
+var puzzle2MiniRoom = 0;
+var puzzle3Tiles = [];
+var puzzle3TilesUnlocked = [false,false,false];
+var puzzle4Tiles = [];
+var puzzle4Tier = 7;
+var p4Choices = [[],[],[7,8,4],[6,7,8],[5,6,7],[4,5,6],[3,4,5],[2,3,4]];
+var puzzle4Mod = 0;
+var puzzle5Map = [];
+var gotPuzzle5Key = false;
+var puzzle5RoomSwitched = false;
+var puzzle6Arrays = [];
+var theseYs = [];
+var solvedYs = [];
+var theseXoffsets = [];
+var puzzle6StartTiles = [];
+var currentY, currentX;
+var puzzle6TilesActivated = 0;
+var finalPuzzle6XPos;
+var gotPuzzle6Key = false;
+var puzzle7Tiles = [];
+var puzzle7TilesSolved = 0;
+var gotPuzzle7Key = false;
+var comingFrom = 0;
+var t1,t2,t3,t4;
+var lastTileVisited = [];
+var puzzle8Order = 0;
+var puzzle8gate = 0;
+var gotPuzzle8Key = false;
+var galleryPuzzleTilesDropped = false;
+var gpt1 = []; gpt2 = [];
+var galleryPuzzleSolved = false;
+var brokenSecretTile = false, brokenTowerTile = false;
+var visitedBalcony = false;
+var comingFromBalcony = false;
+var comingFromCrypt = false;
+var towerFloorNumber = 1;
+var towerStairsPuzzleActive = false;
+var towerStairsPuzzleTick = 0;
+var towerStairsSolutions = [];
+var towerStairsIncorrectGuesses = 0;
+var towerStairsSolution;
+const stairsXOffset = 125, stairsYOffset = 25;
+var towerSolution1 = [], towerSolution2 = [], towerSolution3 = [], towerSolution4 = [];
+var puzzle10Active = false;
+var towerStairsDrawSpeed = 500;
+var tower1Active = false, tower2Active = false, tower3Active = false, tower4Active = false;
+var towerActiveX, towerActiveY;
+var puzzleInc = 0;
+var puzzle9Inc = 0;
+var playX = 2;
+var currentAnswer = 0;
+var puzzle9Played = false;
+var firstFinalPuzzleDrop = true;
+var cryptCount = 0;
+var secretSlideEntrance = false;/////////////////////
+var cryptGuardsDropped = false;
+var activatedSlideRooms = [false,false,false,false,false,false];
+var firstPlayPuzzle10 = true;
+
+var alphaMap = [];
+var lightMap = [];
+var startingAlpha = 0.9;
+var p8Alpha = 0.6;
+var alphaReduction = 0.01;
+var title = '';
+
+var clickTick = false;
+
+var guards = [];
+
+var sndTestTick = false;
+
+
+//loading background sounds
+
+//Tile Stuff
+var tileset = null, tilesetURL = "tiles.png",  tilesetLoaded = false;
+var floorTypes = {
+	solid : 0,
+	path : 1,
+	destructible : 2,
+	ice : 3,
+	conveyorU : 4,
+	conveyorD : 5,
+	conveyorL : 6,
+	conveyorR : 7
+};
+
+var tileTypes = {
+
+	0: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*11, w:tw, h:th}]}, //wall -9/5
+	1: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*6, w:tw, h:th}]}, //path
+
+	2: { floor:floorTypes.path, sprite:[{x:tw*0, y:th*0, w:tw, h:th}]}, //white rest
+	3: { floor:floorTypes.path, sprite:[{x:tw*1, y:th*0, w:tw, h:th}]}, //white quarter
+	4: { floor:floorTypes.path, sprite:[{x:tw*2, y:th*0, w:tw, h:th}]}, //white eight
+	5: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*0, w:tw, h:th}]}, //white za
+	6: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*0, w:tw, h:th}]}, //white 16
+	7: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*0, w:tw, h:th}]}, //white pepero
+	8: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*0, w:tw, h:th}]}, //white peponi
+	9: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*0, w:tw, h:th}]}, //white pepperni
+	10: { floor:floorTypes.path, sprite:[{x:tw*8, y:th*0, w:tw, h:th}]}, //white penny
+	11: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*0, w:tw, h:th}]}, //white pepper
+
+	12: { floor:floorTypes.path, sprite:[{x:tw*0, y:th*2, w:tw, h:th}]}, //red rest
+	13: { floor:floorTypes.path, sprite:[{x:tw*1, y:th*2, w:tw, h:th}]}, //red quarter
+	14: { floor:floorTypes.path, sprite:[{x:tw*2, y:th*2, w:tw, h:th}]}, //red eight
+	15: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*2, w:tw, h:th}]}, //red za
+	16: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*2, w:tw, h:th}]}, //red 16
+	17: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*2, w:tw, h:th}]}, //red pepero
+	18: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*2, w:tw, h:th}]}, //red peponi
+	19: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*2, w:tw, h:th}]}, //red pepperni
+	20: { floor:floorTypes.path, sprite:[{x:tw*8, y:th*2, w:tw, h:th}]}, //red penny
+	21: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*2, w:tw, h:th}]}, //red pepper
+
+	22: { floor:floorTypes.path, sprite:[{x:tw*0, y:th*6, w:tw, h:th}]}, //white dot quarter
+	23: { floor:floorTypes.path, sprite:[{x:tw*1, y:th*6, w:tw, h:th}]}, //white dot eight
+	24: { floor:floorTypes.path, sprite:[{x:tw*2, y:th*6, w:tw, h:th}]}, //white dot za
+	25: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*6, w:tw, h:th}]}, //white dot 16
+	26: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*6, w:tw, h:th}]}, //white dot pepero
+	27: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*6, w:tw, h:th}]}, //white dot peponi
+	28: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*6, w:tw, h:th}]}, //white dot pepperni
+	29: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*6, w:tw, h:th}]}, //white dot penny
+	30: { floor:floorTypes.path, sprite:[{x:tw*8, y:th*6, w:tw, h:th}]}, //white dot pepper
+
+	31: { floor:floorTypes.path, sprite:[{x:tw*0, y:th*7, w:tw, h:th}]}, //black dot quarter
+	32: { floor:floorTypes.path, sprite:[{x:tw*1, y:th*7, w:tw, h:th}]}, //black dot eight
+	33: { floor:floorTypes.path, sprite:[{x:tw*2, y:th*7, w:tw, h:th}]}, //black dot za
+	34: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*7, w:tw, h:th}]}, //black dot 16
+	35: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*7, w:tw, h:th}]}, //black dot pepero
+	36: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*7, w:tw, h:th}]}, //black dot peponi
+	37: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*7, w:tw, h:th}]}, //black dot pepperni
+	38: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*7, w:tw, h:th}]}, //black dot penny
+	39: { floor:floorTypes.path, sprite:[{x:tw*8, y:th*7, w:tw, h:th}]}, //black dot pepper
+
+	40: { floor:floorTypes.path, sprite:[{x:tw*2, y:th*3, w:tw, h:th}]}, //button off
+	41: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*3, w:tw, h:th}]}, //button on
+	42: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*3, w:tw, h:th}]}, //key 1
+	43: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*3, w:tw, h:th}]}, //key 2
+	44: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*3, w:tw, h:th}]}, //key 3
+	45: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*3, w:tw, h:th}]}, //scroll
+	46: { floor:floorTypes.solid, sprite:[{x:tw*9, y:th*5, w:tw, h:th}]}, //wall 1 (BLACK TILE)
+	47: { floor:floorTypes.solid, sprite:[{x:tw*9, y:th*3, w:tw, h:th}]}, //wall 2
+	48: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*4, w:tw, h:th}]}, //wall 3
+	49: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*5, w:tw, h:th}]}, //wall 4
+
+	50: { floor:floorTypes.path, sprite:[{x:tw*1, y:th*4, w:tw, h:th}]}, //door 1
+	51: { floor:floorTypes.path, sprite:[{x:tw*2, y:th*4, w:tw, h:th}]}, //door 2
+	52: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*4, w:tw, h:th}]}, //stair
+	53: { floor:floorTypes.solid, sprite:[{x:tw*9, y:th*7, w:tw, h:th}]}, //pillar
+	54: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*4, w:tw, h:th}]}, //vert gate locked
+	55: { floor:floorTypes.solid, sprite:[{x:tw*5, y:th*4, w:tw, h:th}]}, //vert gate
+	56: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*9, w:tw, h:th}]}, //horiz gate
+	57: { floor:floorTypes.solid, sprite:[{x:tw*1, y:th*9, w:tw, h:th}]}, //horiz gate locked
+
+	58: { floor:floorTypes.conveyorU, sprite:[{x:tw*6, y:th*4, w:tw, h:th}]}, //up conveyor white
+	59: { floor:floorTypes.conveyorD, sprite:[{x:tw*7, y:th*4, w:tw, h:th}]}, //down conveyor white
+	60: { floor:floorTypes.conveyorL, sprite:[{x:tw*8, y:th*4, w:tw, h:th}]}, //left conveyor white
+	61: { floor:floorTypes.conveyorR, sprite:[{x:tw*9, y:th*4, w:tw, h:th}]}, //right conveyor white
+
+	62: { floor:floorTypes.path, sprite:[{x:tw*0, y:th*5, w:tw, h:th}]}, //stripe black 1
+	63: { floor:floorTypes.path, sprite:[{x:tw*1, y:th*5, w:tw, h:th}]}, //stripe black 2
+	64: { floor:floorTypes.solid, sprite:[{x:tw*7, y:th*5, w:tw, h:th}]}, //stripe white
+	65: { floor:floorTypes.destructible, sprite:[{x:tw*9, y:th*11, w:tw, h:th}]}, //cracked wall
+	66: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*8, w:tw, h:th}]}, //warp white bg
+	67: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*5, w:tw, h:th}]}, //wood
+	68: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*5, w:tw, h:th}]}, //? block
+	69: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*5, w:tw, h:th}]}, //! block
+
+	70: { floor:floorTypes.solid, sprite:[{x:tw*2, y:th*9, w:tw, h:th}]}, //locked gate quarter
+	71: { floor:floorTypes.solid, sprite:[{x:tw*3, y:th*9, w:tw, h:th}]}, //locked gate eighth
+	72: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*9, w:tw, h:th}]}, //locked gate sixteenth
+	73: { floor:floorTypes.solid, sprite:[{x:tw*5, y:th*9, w:tw, h:th}]}, //locked gate rest
+
+	74: { floor:floorTypes.conveyorU, sprite:[{x:tw*6, y:th*8, w:tw, h:th}]}, //up conveyor black
+	75: { floor:floorTypes.conveyorD, sprite:[{x:tw*7, y:th*8, w:tw, h:th}]}, //down conveyor black
+	76: { floor:floorTypes.conveyorL, sprite:[{x:tw*8, y:th*8, w:tw, h:th}]}, //left conveyor black
+	77: { floor:floorTypes.conveyorR, sprite:[{x:tw*9, y:th*8, w:tw, h:th}]}, //right conveyor black
+
+	78: { floor:floorTypes.ice, sprite:[{x:tw*3, y:th*8, w:tw, h:th}]}, //ice dashed white
+
+	79: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*5, w:tw, h:th}]}, //warp black bg
+	80: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*9, w:tw, h:th}]}, //key icon white
+	81: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*11, w:tw, h:th}]}, //button ?
+
+	82: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*1, w:tw, h:th}]}, //black rest
+	83: { floor:floorTypes.solid, sprite:[{x:tw*1, y:th*1, w:tw, h:th}]}, //black quarter
+	84: { floor:floorTypes.solid, sprite:[{x:tw*2, y:th*1, w:tw, h:th}]}, //black eight
+	85: { floor:floorTypes.solid, sprite:[{x:tw*3, y:th*1, w:tw, h:th}]}, //black za
+	86: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*1, w:tw, h:th}]}, //black 16
+	87: { floor:floorTypes.solid, sprite:[{x:tw*5, y:th*1, w:tw, h:th}]}, //black pepero
+	88: { floor:floorTypes.solid, sprite:[{x:tw*6, y:th*1, w:tw, h:th}]}, //black peponi
+	89: { floor:floorTypes.solid, sprite:[{x:tw*7, y:th*1, w:tw, h:th}]}, //black pepperni
+	90: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*1, w:tw, h:th}]}, //black penny
+	91: { floor:floorTypes.solid, sprite:[{x:tw*9, y:th*1, w:tw, h:th}]}, //black pepper
+
+	92: { floor:floorTypes.path, sprite:[{x:tw*0, y:th*10, w:tw, h:th}]}, //quaver
+	93: { floor:floorTypes.path, sprite:[{x:tw*1, y:th*10, w:tw, h:th}]}, //crotchet
+	94: { floor:floorTypes.path, sprite:[{x:tw*2, y:th*10, w:tw, h:th}]}, //minim
+
+	95: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*24, w:tw, h:th}]}, //eye -- 0,11
+	96: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*24, w:tw, h:th}]}, //ear -- 1,11
+	97: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*25, w:tw, h:th}]}, //mic -- 9,25
+
+	98: { floor:floorTypes.path, sprite:[{x:tw*8, y:th*24, w:tw, h:th}]}, //eye icon
+	99: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*24, w:tw, h:th}]}, //ear icon
+	100: { floor:floorTypes.path, sprite:[{x:tw*8, y:th*25, w:tw, h:th}]}, //mic icon -- 8,25
+
+	101: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*10, w:tw, h:th}]}, //button off
+	102: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*10, w:tw, h:th}]}, //button rest
+	103: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*10, w:tw, h:th}]}, //button quarter
+	104: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*10, w:tw, h:th}]}, //button eight
+	105: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*11, w:tw, h:th}]}, //button za
+	106: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*10, w:tw, h:th}]}, //button sixteenth
+	107: { floor:floorTypes.path, sprite:[{x:tw*8, y:th*10, w:tw, h:th}]}, //black stop
+	108: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*10, w:tw, h:th}]}, //black play
+
+	109: { floor:floorTypes.solid, sprite:[{x:tw*6, y:th*11, w:tw, h:th}]}, //black ? tile full
+	110: { floor:floorTypes.solid, sprite:[{x:tw*7, y:th*11, w:tw, h:th}]}, //red ? tile full
+
+	111: { floor:floorTypes.path, sprite:[{x:tw*0, y:th*13, w:tw, h:th}]}, //sideways stairs
+
+	112: { floor:floorTypes.ice, sprite:[{x:tw*0, y:th*14, w:tw, h:th}]}, //ice rest
+	113: { floor:floorTypes.ice, sprite:[{x:tw*1, y:th*14, w:tw, h:th}]}, //ice quarter
+	114: { floor:floorTypes.ice, sprite:[{x:tw*2, y:th*14, w:tw, h:th}]}, //ice eight
+	115: { floor:floorTypes.ice, sprite:[{x:tw*3, y:th*14, w:tw, h:th}]}, //ice za
+	116: { floor:floorTypes.ice, sprite:[{x:tw*4, y:th*14, w:tw, h:th}]}, //ice 16
+	117: { floor:floorTypes.ice, sprite:[{x:tw*5, y:th*14, w:tw, h:th}]}, //ice pepero
+	118: { floor:floorTypes.ice, sprite:[{x:tw*6, y:th*14, w:tw, h:th}]}, //ice peponi
+	119: { floor:floorTypes.ice, sprite:[{x:tw*7, y:th*14, w:tw, h:th}]}, //ice pepperni
+	120: { floor:floorTypes.ice, sprite:[{x:tw*8, y:th*14, w:tw, h:th}]}, //ice penny
+	121: { floor:floorTypes.ice, sprite:[{x:tw*9, y:th*14, w:tw, h:th}]}, //ice pepper
+
+	122: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*12, w:tw, h:th}]}, //brick rest
+	123: { floor:floorTypes.solid, sprite:[{x:tw*1, y:th*12, w:tw, h:th}]}, //brick quarter
+	124: { floor:floorTypes.solid, sprite:[{x:tw*2, y:th*12, w:tw, h:th}]}, //brick eight
+	125: { floor:floorTypes.solid, sprite:[{x:tw*3, y:th*12, w:tw, h:th}]}, //brick za
+	126: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*12, w:tw, h:th}]}, //brick 16
+	127: { floor:floorTypes.solid, sprite:[{x:tw*5, y:th*12, w:tw, h:th}]}, //brick pepero
+	128: { floor:floorTypes.solid, sprite:[{x:tw*6, y:th*12, w:tw, h:th}]}, //brick peponi
+	129: { floor:floorTypes.solid, sprite:[{x:tw*7, y:th*12, w:tw, h:th}]}, //brick pepperni
+	130: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*12, w:tw, h:th}]}, //brick penny
+	131: { floor:floorTypes.solid, sprite:[{x:tw*9, y:th*12, w:tw, h:th}]}, //brick pepper
+
+	132: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*13, w:tw, h:th}]}, //brick X empty
+	133: { floor:floorTypes.solid, sprite:[{x:tw*9, y:th*13, w:tw, h:th}]}, //brick X full
+
+	134: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*13, w:tw, h:th}]}, //button empty
+	135: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*13, w:tw, h:th}]}, //brick black X
+
+	136: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*6, w:tw, h:th}]}, //guard path 
+	137: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*6, w:tw, h:th}]}, //sound tile
+	138: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*11, w:tw, h:th}]}, //sound wall
+	139: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*11, w:tw, h:th}]}, //sound trap door
+	140: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*13, w:tw, h:th}]}, //red button
+	141: { floor:floorTypes.solid, sprite:[{x:tw*9, y:th*6, w:tw, h:th}]}, //solid path
+	142: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*24, w:tw*6, h:th}]}, //RHYTHM
+	143: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*25, w:tw*6, h:th}]}, //PALACE
+	144: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*13, w:tw, h:th}]}, //eighth icon
+	145: { floor:floorTypes.ice, sprite:[{x:tw*8, y:th*13, w:tw, h:th}]}, //ice for red rhythms
+	146: { floor:floorTypes.solid, sprite:[{x:tw*6, y:th*25, w:tw, h:th}]}, // guard statue right
+	147: { floor:floorTypes.solid, sprite:[{x:tw*7, y:th*25, w:tw, h:th}]}, // guard statue left
+	148: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*11, w:tw, h:th}]} //fake wall for secret openings
+
+
+	
+};
+
+var itemTypes = {
+
+//world 1
+	0: { }, // empty
+	1: { },
+	2: { floor:floorTypes.path, sprite:[{x:tw*0, y:th*23, w:tw, h:th}]}, //red rest
+	3: { floor:floorTypes.path, sprite:[{x:tw*1, y:th*23, w:tw, h:th}]}, //red quarter
+	4: { floor:floorTypes.path, sprite:[{x:tw*2, y:th*23, w:tw, h:th}]}, //red eight
+	5: { floor:floorTypes.path, sprite:[{x:tw*3, y:th*23, w:tw, h:th}]}, //red za
+	6: { floor:floorTypes.path, sprite:[{x:tw*4, y:th*23, w:tw, h:th}]}, //red 16
+	7: { floor:floorTypes.path, sprite:[{x:tw*5, y:th*23, w:tw, h:th}]}, //red pepero
+	8: { floor:floorTypes.path, sprite:[{x:tw*6, y:th*23, w:tw, h:th}]}, //red peponi
+	9: { floor:floorTypes.path, sprite:[{x:tw*7, y:th*23, w:tw, h:th}]}, //red pepperni
+	10: { floor:floorTypes.path, sprite:[{x:tw*8, y:th*23, w:tw, h:th}]}, //red penny
+	11: { floor:floorTypes.path, sprite:[{x:tw*9, y:th*23, w:tw, h:th}]}, //red pepper
+
+}
+
+var kingTypes = {
+
+0: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*15, w:tw*2, h:th*2}]}, //bg black
+1: { floor:floorTypes.solid, sprite:[{x:tw*2, y:th*15, w:tw*2, h:th*2}]}, //bg white
+2: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*15, w:tw*2, h:th*2}]}, //bg red
+3: { floor:floorTypes.solid, sprite:[{x:tw*8, y:th*15, w:tw*2, h:th*2}]}, //bg FULL BODY
+
+4: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*19, w:tw*2, h:th*2}]}, //body black
+5: { floor:floorTypes.solid, sprite:[{x:tw*2, y:th*19, w:tw*2, h:th*2}]}, //body white
+6: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*19, w:tw*2, h:th*2}]}, //body red
+7: { floor:floorTypes.solid, sprite:[{x:tw*6, y:th*19, w:tw*2, h:th*2}]}, //body clear
+
+8: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*17, w:tw*2, h:th*2}]}, //scepter black
+9: { floor:floorTypes.solid, sprite:[{x:tw*2, y:th*17, w:tw*2, h:th*2}]}, //scepter white
+10: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*17, w:tw*2, h:th*2}]}, //scepter red
+11: { floor:floorTypes.solid, sprite:[{x:tw*6, y:th*17, w:tw*2, h:th*2}]}, //scepter clear
+
+12: { floor:floorTypes.solid, sprite:[{x:tw*0, y:th*21, w:tw*2, h:th*2}]}, //face black
+13: { floor:floorTypes.solid, sprite:[{x:tw*2, y:th*21, w:tw*2, h:th*2}]}, //face white
+14: { floor:floorTypes.solid, sprite:[{x:tw*4, y:th*21, w:tw*2, h:th*2}]}, //face red
+15: { floor:floorTypes.solid, sprite:[{x:tw*6, y:th*21, w:tw*2, h:th*2}]} //face clear
+
+}
+
+
+
+var directions = {
+	up : 0,
+	right : 1,
+	down : 2,
+	left : 3
+};
+
+var keysDown = {
+	13 : false,
+	32 : false,
+	37 : false,
+	38 : false,
+	39 : false,
+	40 : false
+};
+
+var keysUp = {
+	13 : false,
+	32 : false,
+	37 : false,
+	38 : false,
+	39 : false,
+	40 : false
+};
+
+//Character 
+var player = new Character();
+var starting_pos = [9, 23];
+player.position[0] = starting_pos[0];
+player.position[1] = starting_pos[1];
+player.placeAt(player.position[0], player.position[1]);
+
+
+function toHMS(time)
+{
+	var hrs = ~~(time / 3600);
+    var mins = ~~((time % 3600) / 60);
+    var secs = ~~time % 60;
+
+    // Output like "1:01" or "4:03:59" or "123:03:59"
+    var ret = "";
+    if (hrs > 0) {
+        ret += "" + hrs + ":" + (mins < 10 ? "0" : "");
+    }
+    ret += "" + mins + ":" + (secs < 10 ? "0" : "");
+    ret += "" + secs;
+    return ret;
+}
+
+
+
+///////////////////////////////////////////////////////////////MAIN GAME LOOP
+function drawGame()
+{
+	if(ctx==null) { return; }
+	if(!tilesetLoaded) { requestAnimationFrame(drawGame); return; }
+
+	currentFrameTime = Date.now();
+	var timeElapsed = currentFrameTime - lastFrameTime;
+	var sec = Math.floor(Date.now()/1000);
+	var tick;
+
+	if(sec!=currentSecond)
+	{
+		currentSecond = sec;
+		framesLastSecond = frameCount;
+		frameCount = 1;
+	}
+	else { frameCount++; }
+
+	///////////////////////////////////////process movement
+
+	if(!player.processMovement(currentFrameTime))
+	{
+		//adding these IF conditionals makes it impossible to move at a diagonal.
+		if((keysDown[38] && keysDown[37]) || 
+			(keysDown[38] && keysDown[39]) ||
+			(keysDown[40] && keysDown[37]) ||
+			(keysDown[40] && keysDown[39])
+			) {}
+		else
+		{
+			//otherwise just move
+			if(keysDown[38] && player.canMoveUp()) { player.moveUp(currentFrameTime); }
+			if(keysDown[40] && player.canMoveDown()) { player.moveDown(currentFrameTime); }
+			if(keysDown[37] && player.canMoveLeft()) { player.moveLeft(currentFrameTime); }
+			if(keysDown[39] && player.canMoveRight()) { player.moveRight(currentFrameTime); }
+		}
+	}
+
+	if (player.position != playerPosLast) { tick = 1; } else { tick = 0; }
+
+	viewport.update(player.position[0] + (player.dimensions[0]/2),
+		player.position[1] + (player.dimensions[1]/2));
+
+	//////////////////////////////draw background
+	ctx.fillStyle = "#111111";
+	ctx.fillRect(0, 0, viewport.screen[0], viewport.screen[1]);
+
+	///////////////////////////////
+	if(isIntro) 
+	{ 
+		if(introTick) { drawIntro(); clearTextBar(); }
+		drawIntroTiles(currentFrameTime, currentSecond);
+		moveGuards();
+		processIntroTiles(tick);
+	}
+	if(isLobby) 
+	{ 
+		if(lobbyTick) { drawLobby(); clearTextBar(); playSnd(144);}
+		drawLobbyTiles(currentFrameTime, currentSecond);
+		moveGuards();
+		clearGuard(tick);
+		processLobbyTiles(tick);
+	}
+	if(isPuzzleRoom1) 
+	{ 
+		if(puzzleRoom1Tick) { drawPuzzleRoom1(); clearTextBar(); playSnd(144);}
+		drawPuzzleRoom1Tiles(currentFrameTime, currentSecond);
+		processPuzzleRoom1Tiles(tick);
+	}
+	if(isPuzzleRoom2) 
+	{ 
+		if(puzzleRoom2Tick) { drawPuzzleRoom2(); clearTextBar(); playSnd(144);}
+		drawPuzzleRoom2Tiles(currentFrameTime, currentSecond);
+		processPuzzleRoom2Tiles(tick);
+	}
+	if(isPuzzleRoom3) 
+	{ 
+		if(puzzleRoom3Tick) { drawPuzzleRoom3(); clearTextBar();playSnd(144); }
+		drawPuzzleRoom3Tiles(currentFrameTime, currentSecond);
+		processPuzzleRoom3Tiles(tick);
+	}
+	if(isPuzzleRoom4) 
+	{ 
+		if(puzzleRoom4Tick) { drawPuzzleRoom4(); clearTextBar(); playSnd(144); playBgSnd(155,'puzzle4');
+		}
+		drawPuzzleRoom4Tiles(currentFrameTime, currentSecond);
+		moveGuards();
+		clearGuard(tick);
+		processPuzzleRoom4Tiles(tick);
+	}
+	if(isGallery) 
+	{ 
+		if(galleryTick) { drawGallery(); clearTextBar(); playSnd(144); }
+		drawGalleryTiles(currentFrameTime, currentSecond);
+		moveGuards();
+		clearGuard(tick);
+		processGalleryTiles(tick);
+	}
+	if(isPuzzleRoom5) 
+	{ 
+		if(puzzleRoom5Tick) { drawPuzzleRoom5(); clearTextBar(); playSnd(144);}
+		drawPuzzleRoom5Tiles(currentFrameTime, currentSecond);
+		processPuzzleRoom5Tiles(tick);
+	}
+	if(isPuzzleRoom6) 
+	{ 
+		if(puzzleRoom6Tick) { drawPuzzleRoom6(); clearTextBar(); playSnd(144);}
+		drawPuzzleRoom6Tiles(currentFrameTime, currentSecond);
+		processPuzzleRoom6Tiles(tick);
+	}
+	if(isPuzzleRoom7) 
+	{ 
+		if(puzzleRoom7Tick) { drawPuzzleRoom7(); clearTextBar(); playSnd(144);}
+		drawPuzzleRoom7Tiles(currentFrameTime, currentSecond);
+		processPuzzleRoom7Tiles(tick);
+	}
+	if(isPuzzleRoom8) 
+	{ 
+		if(puzzleRoom8Tick) { drawPuzzleRoom8(); clearTextBar();playSnd(144); }
+		drawPuzzleRoom8Tiles(currentFrameTime, currentSecond);
+		processPuzzleRoom8Tiles(tick);
+	}
+	if(isTowerStairs) 
+	{ 
+		if(towerStairsTick) { drawTowerStairs(towerFloorNumber); clearTextBar(); playSnd(144);}
+		drawTowerStairsTiles(currentFrameTime, currentSecond);
+		moveGuards();
+		clearGuard(tick);
+		processTowerStairsTiles(tick);
+	}
+	if(isTower) 
+	{ 
+		if(towerTick) { drawTower(); clearTextBar(); playSnd(144);}
+		drawTowerTiles(currentFrameTime, currentSecond);
+		moveGuards();
+		clearGuard(tick);
+		processTowerTiles(tick);
+	}
+	if(isSlide) 
+	{ 
+		if(slideTick) { drawSlide(); clearTextBar(); playSnd(144);}
+		drawSlideTiles(currentFrameTime, currentSecond);
+		moveGuards();
+		clearGuard(tick);
+		processSlideTiles(tick);
+	}
+	if(isLobby2) 
+	{ 
+		if(lobby2Tick) { drawLobby2(); clearTextBar();playSnd(144); }
+		drawLobby2Tiles(currentFrameTime, currentSecond);
+		processLobby2Tiles(tick);
+	}
+	if(isCrypt) 
+	{ 
+		if(cryptTick) { drawCrypt(); clearTextBar(); playSnd(144); }
+		drawCryptTiles(currentFrameTime, currentSecond);
+		moveGuards();
+		clearGuard(tick);
+		processCryptTiles(tick);
+	}
+
+	if(isPuzzleRoom9) 
+	{ 
+		if(puzzleRoom9Tick) { drawPuzzleRoom9(); clearTextBar(); playSnd(144);}
+		drawPuzzleRoom9Tiles(currentFrameTime, currentSecond);
+		processPuzzleRoom9Tiles(tick);
+	}
+	if(isThrone) 
+	{ 
+		if(throneTick) { drawThrone(); clearTextBar(); playSnd(144); updateTextBar("You've found KING QUAVER!"); }
+		drawThroneTiles(currentFrameTime, currentSecond);
+		moveGuards();
+		clearGuard(tick);
+		processThroneTiles(tick);
+	}
+
+
+	//play tile sounds
+	if(tick && 
+	!isLobby && 
+	!isPuzzleRoom4 && 
+	!isPuzzleRoom3 && 
+	!isPuzzleRoom1 && 
+	!isPuzzleRoom2 &&
+	!isPuzzleRoom7 &&
+	!isPuzzleRoom9 &&
+	!isPuzzleRoom8 &&
+	!isSlide &&
+	!isGallery && !isPuzzleRoom6 && !isTowerStairs && !isTower) { 
+		playSnd(gameMap[toIndex(playerX(),playerY())]);
+	}
+
+	if(overlayActive) { dropOverlay(); }
+
+	drawTextBar();
+	if(isIntro) { drawTitle(); }
+	if(gameEnd) { endScreen(); }
+
+
+
+	// // //////////////frame rate check
+	// ctx.fillStyle = "#ff0000";
+	// ctx.font = "10px Andale Mono";
+	// ctx.textAlign = "start";
+	// ctx.fillText("FPS: " + framesLastSecond, 10, 20);
+	// ///items you have
+
+	if(openingTitleTick)
+	{
+		ctx.fillStyle = "white";
+        ctx.font = "14px Iowan Old Style";
+        ctx.textAlign = 'center';
+        ctx.fillText('v.1.0 by Danny Clay',(mapW*tileW)/2,(mapH*tileH*1.15));
+	}
+	playerPosLast = player.position;
+
+	lastFrameTime = currentFrameTime;
+	requestAnimationFrame(drawGame);
+}
+</script>
+
+</head>
+<body>
+<div style="text-align:center"> 
+	<canvas id="game" width="700" height="600"></canvas>
+</div> 
+</body>
+</html>

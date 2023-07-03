@@ -7,7 +7,6 @@ function drawSlide()
 	ctx.fillStyle = "#000000";
 	ctx.fillRect(0, 0, viewport.screen[0], viewport.screen[1]);
 
-	secretSlideEntrance = true;
     const slideMapW = 14;
 	const slideMapH = 290;
 
